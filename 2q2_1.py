@@ -1,42 +1,26 @@
 import sys
 import numpy as np
-import math
 from statistics import mode
 
 class Node():
-    def __init__(self, dataIndices, splitValue=None, parent=None):
+    def __init__(self, X, Y, splitValue=None, parent=None):
         self.parent = parent
-        self.children = []
-        self.dataIndices = dataIndices
+        self.Children = []
+        self.X = X
+        self.Y = Y
         self.splitValue = splitValue
 
     def GetData(self):
         print(self.dataIndices[0])
         print(self.dataIndices[1])
 
-    def entropy(self, Xtrain):
-        count = [2] # index 0 is number of 1 and index 2 is number of  -1
-        for y_i in range(len(self.dataIndices[0])):
-            if Xtrain[y_i][0] == -1:
-                counts[0] += 1
-            counts[1] += 1
+    def entropy(self):
+        count = list()
+        for i in range(Y.size):
 
-            s = sum(count)
 
-            H = 0
-            if not self.Children:
-                for c in count:
-                    purity = c / len(self.dataIndices[0]))
-                    H -= purity * math.log2(purity)
-                return H
-            else:
-               return  RemainingEntropyOfChildren(Xtrain, s)
 
-    def RemaningEntropyofChildren(self, Xtrain, s):
-        H = 0
-        for node in self.children:
-            H += self.len(node.)/ s * child.entropy(Xtrain)
-        return H
+
 
 class Tree():
     def __init__(self, node):
@@ -57,11 +41,9 @@ def main():
 
     Xtrain, Ytrain = GetNormalData(train)
     Xtest, Ytest = GetNormalData(train)
+    #row, col = np.indices((train.shape[0], train.shape[1]))
 
-    Xtrain = np.insert(Xtrain, 0, Ytrain, axis=1)
-    row, col = np.indices((Xtrain.shape[0], Xtrain.shape[1]))
-
-    root = Node((row,col))
+    root = Node(Xtrain,Ytrain)
     #root.GetData()
 
 main()
