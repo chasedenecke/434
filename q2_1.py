@@ -1,12 +1,48 @@
-class node():
-    def __init__(self, parent):
+import sys
+import numpy as np
+from statistics import mode
+
+class Node():
+    def __init__(self, dataIndices, splitValue=None, parent=None):
         self.parent = parent
-        self.left = 
-        self.right = 
-        self.dataIndices = list()
-        self.splitValue = 
-    def 
-    
+        self.Children = []
+        self.dataIndices = dataIndices
+        self.splitValue = splitValue
+
+    def GetData(self):
+        print(self.dataIndices[0])
+        print(self.dataIndices[1])
+#    def entropy(self):
+#        count = list()
+
+
+
+class Tree():
+    def __init__(self, node):
+        self.root = node
+
+def Normalize(X):
+    return (X-X.min(0)) / X.ptp(0);
+
+def GetNormalData(data):
+    nd = Normalize(data)
+    x = nd[:,1:]
+    y = data[:,0]
+    return x, y
+
+def main():
+    train = np.genfromtxt(sys.argv[1], delimiter=',')
+    test = np.genfromtxt(sys.argv[2], delimiter=',')
+
+    Xtrain, Ytrain = GetNormalData(train)
+    Xtest, Ytest = GetNormalData(train)
+    row, col = np.indices((train.shape[0], train.shape[1]))
+
+    root = Node((row,col))
+    root.GetData()
+
+main()
+
 
 '''
 Each node has left and right child and a set of data points that flow to it
@@ -24,6 +60,6 @@ Finding threshold for continuous valued features:
                 minEntropy = currentEntropy
         if minEntropy < minEntropyForAllFeatures
         minEntropyForAllFeatures = minEntropy
-        
+
     self.feature = feature that had minEntropyForAllFeatures
 '''
