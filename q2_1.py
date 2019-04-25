@@ -56,12 +56,11 @@ class Node():
                 class_count[1] += 1
 
         neg = class_count[0] / len(data)
-        pos = class_count[0] / len(data)
+        pos = class_count[1] / len(data)
         # Zero case, this might be possible.
         if class_count[0] == 0 or class_count[1] == 0:
             return 0
         # We're all made here.
-        print(class_count)
         neg_v = - neg * math.log2(neg)
         pos_v = - pos * math.log2(pos)
         return pos_v + neg_v
@@ -105,7 +104,7 @@ def main():
     Xtest, Ytest = GetNormalData(train)
 
     root = Node(Xtrain, Ytrain, 1)
-    print(root.GetInfoGain(.7,2))
+    print(root.GetInfoGain(.2,2))
 main()
 
 
