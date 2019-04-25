@@ -8,11 +8,11 @@ class Node():
     # It would have made a dreadfully ugly child;
     # but it makes a rather handsome pig.
     def __init__(self, Xtrain, Ytrain, depth=1, parent=None):
+        print("start of new node")
         self.Xtrain = Xtrain
         self.Ytrain = Ytrain
         self.depth = depth
         self.splitValue = None
-        self.feature = None # The index of feature according to which this node splits data points
         self.parent = parent
         self.children = []
         self.featureIndex = -1
@@ -71,12 +71,15 @@ class Node():
         # inner loop: iterate through possible split values to find the one
         # that minimizes entropy for that feature
     def determineFeature(self):
-        for column, feature in enumerate(self.Xtrain.T): # Iterate through columns of data by first transposing data matrix
+        print("self.Xtrain = ", np.transpose(self.Xtrain))
+        for column, feature in enumerate(np.transpose(self.Xtrain)): # Iterate through columns of data by first transposing data matrix
             sortedFeature = np.unique(feature)
             sortedFeature.sort()
-            for x in sortedFeature[:-1]: # This should technically stop 1 spot before the last element of the array but I am lazy
+            for x in sortedFeature[:-2]: # This should technically stop 1 spot before the last element of the array but I am lazy
+                # print("column before if = ", column)
                 infoGain = self.GetInfoGain(x, column)
                 if infoGain > self.infoGain:
+                    print("column = ", column)
                     self.featureIndex = column
                     self.infoGain = infoGain
                     self.splitValue = x
@@ -91,23 +94,38 @@ class Node():
         if self.infoGain == 0 or self.depth == 0:
             return [(self.infoGain, self.col_size)]
         else:
-            column = self.Xtrain[:, self.featureIndex] # Get Column index
-        leftSplitX = [] # Hold data needed for left split. Holds Y keys for left split.
-        rightSplitX = [] # Hold data for right split. Holds Y keys for right split.
-        leftSplitY = []
-        rightSplitY = []
+            print("self.featureIndex = ", self.featureIndex)
+        leftSplitX = np.empty(self.Xtrain.shape[1]) # Hold data needed for left split. Holds Y keys for left split.
+        rightSplitX = np.empty(self.Xtrain.shape[1]) # Hold data for right split. Holds Y keys for right split.
+        leftSplitY = np.empty([0])
+        rightSplitY = np.empty([0])
 
         # Enumerate through the column we keep track of what index the
         # element less than the split was located at.
         for i, elem in enumerate(self.Xtrain.T[self.featureIndex]):
             if elem <= self.splitValue:
-                leftSplitX.append(self.Xtrain[i])
-                leftSplitY.append(self.Ytrain[i])
+                print("leftSplitX.shape = ", leftSplitX.shape)
+                tempXtrain = self.Xtrain[i]
+                tempXtrain.reshape((tempXtrain.shape[0], 1))
+                tempYtrain = np.array([self.Ytrain[i]])
+                print("tempXtrain.shape = ", tempXtrain.shape)
+                leftSplitX = np.append(leftSplitX, tempXtrain, axis=0)
+                leftSplitY = np.append(leftSplitY, tempYtrain, axis=0)
             else:
-                rightSplitX.append(self.Xtrain[i])
-                rightSplitY.append(self.Ytrain[i])
-        
+                tempXtrain = self.Xtrain[i]
+                tempXtrain.reshape((tempXtrain.shape[0], 1))
+                print("yTrain = ", self.Ytrain)
+                tempYtrain = np.array([self.Ytrain[i]])
+                print("shapes = ", rightSplitY.shape, tempYtrain.shape)
+                rightSplitX = np.append(rightSplitX, tempXtrain, axis=0)
+                rightSplitY = np.append(rightSplitY, tempYtrain, axis=0)
+        print("leftSplitX.shape = ", leftSplitX.shape)
+        #yValues = {"left": [self.Ytrain[x[0]] for x in self.Ytrain[:self.featureIndex+1]], "right": [self.Ytrain[x[0]] for x in self.Ytrain[self.featureIndex+1:]]}
+        # yLeft = [y for y in self.Ytrain[:self.featureIndex+1]]
+        # yRight = [y for y in self.Ytrain[self.featureIndex+1:]]
+
         # Create child nodes and encourage them to give you grandkids
+        print("self.depth = ", self.depth)
         leftChild = Node(leftSplitX, leftSplitY, self.depth - 1, None)
         rightChild = Node(rightSplitX, rightSplitY, self.depth - 1, None)
         leftList = leftChild.reproduce()
@@ -138,8 +156,9 @@ def main():
     Xtrain, Ytrain = GetNormalData(train)
     Xtest, Ytest = GetNormalData(train)
 
-    root = Node(Xtrain, Ytrain, 1)
+    root = Node(Xtrain, Ytrain, 2)
     print(root.reproduce())
+    print(root.featureIndex)
 main()
 
 
