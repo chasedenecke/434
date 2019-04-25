@@ -2,11 +2,13 @@ import sys
 import numpy as np
 import math
 from statistics import mode
+from itertools import compress
 
 class Node():
-    def __init__(self, dataIndices, Xtrain, Ytrain, depth=1, parent=None):
+    def __init__(self, Xtrain, Ytrain, depth=1, parent=None):
         self.Xtrain = Xtrain
         self.Ytrain = Ytrain
+        print("Xtrain = ", self.Xtrain)
         self.depth = depth
         self.splitValue = None
         self.feature = None # The index of feature according to which this node splits data points
@@ -26,7 +28,7 @@ class Node():
         H = 0
         if not self.Children:
             for c in count:
-                purity = c / len(self.dataIndices[0])
+                purity = c / totalData
                 H -= purity * math.log2(purity)
             return H
         else:
@@ -44,15 +46,13 @@ class Node():
     def determineFeature(self):
         print("fuck python indentation")
         minFeatureEntropy = 1
-        for column, feature in enumerate(self.data.T): # Iterate through columns of data by first transposing data matrix
-            print("feature = ", feature)
+        for column, feature in enumerate(self.Xtrain.T): # Iterate through columns of data by first transposing data matrix
             sortedFeature = np.unique(feature)
             sortedFeature.sort()
             print("sortedFeature = ", sortedFeature)
-            print("sortedFeature.size = ", sortedFeature.size)
-            # for x in range(self.data.shape[1]):
-            #     print(self.data[sortedIndices[x]][column], end =" ")
-            # print("\n")
+            for x, y in list(zip(sortedFeature, sortedFeature[1:])):
+                threshold = (x + y)/2
+                self.entropy(threshold, column)
 
 class Tree():
     def __init__(self, node):
@@ -77,7 +77,7 @@ def main():
     Xtrain, Ytrain = GetNormalData(train)
     Xtest, Ytest = GetNormalData(train)
 
-    root = Node( Xtrain, Ytrain, 1)
+    root = Node(Xtrain, Ytrain, 1)
     
 main()
 
@@ -100,4 +100,13 @@ Finding threshold for continuous valued features:
         minEntropyForAllFeatures = minEntropy
 
     self.feature = feature that had minEntropyForAllFeatures
+
+
+
+    TODO:
+    - Add leaf node functionality (if class labels are all the same, return)
+    - Entropy function
+        - Takes two arguments: split value and column index for feature in question
+        - Calculate entropy based on the number of feature values less than the split value
+
 '''
