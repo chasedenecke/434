@@ -19,10 +19,11 @@ class Node():
         self.determineFeature()
 
     # Given a split value between 0 and 1 and an columnIndex
+    # returns the information gain based off the split.
     def GetInfoGain(self, split, columnIndex):
-        coloumn = self.Xtrain[:, columnIndex] # Get Column index
-        leftSplit = [] # Hold data needed for left split. Holds (idex, value)
-        rightSplit = [] # Hold data for right split. Holds (index, value)
+        column = self.Xtrain[:, columnIndex] # Get Column index
+        leftSplit = [] # Hold data needed for left split. Holds Y keys for left split.
+        rightSplit = [] # Hold data for right split. Holds Y keys for right split.
 
         # Enumerate through the column we keep track of what index the
         # element less than the split was located at.
@@ -40,26 +41,29 @@ class Node():
         # Need to have the current entropy of the
         # node to show the info gained from the split.
         # combining them so current is a list of key values for the class.
-        current_entropy = entropy(leftSplit + rightSplit)
+        current_entropy = self.entropy(leftSplit + rightSplit)
 
         # Return info gained by the given split value.
-        return (current_entropy - left_p * entropy(leftSplit) -
-                right_p * entropy(rightSplit))
+        return (current_entropy - left_p * self.entropy(leftSplit) -
+                right_p * self.entropy(rightSplit))
 
-    def entroypy(self, data):
-        classe_count = [0, 0]
+    def entropy(self, data):
+        class_count = [0, 0]
         for v_i in data:
             if self.Ytrain[v_i] == -1:
                 class_count[0] += 1
             else:
                 class_count[1] += 1
 
+        neg = class_count[0] / len(data)
+        pos = class_count[0] / len(data)
         # Zero case, this might be possible.
-        if class_count[0] and class_count[1] == 0:
+        if class_count[0] == 0 or class_count[1] == 0:
             return 0
         # We're all made here.
-        neg_v = - class_count[0] * math.log2(class_count[0])
-        pos_v = - class_count[1] * math.log2(class_count[1])
+        print(class_count)
+        neg_v = - neg * math.log2(neg)
+        pos_v = - pos * math.log2(pos)
         return pos_v + neg_v
 
         # sort dataIndices according to value of feature
@@ -75,7 +79,7 @@ class Node():
             print("sortedFeature = ", sortedFeature)
             for x, y in list(zip(sortedFeature, sortedFeature[1:])):
                 threshold = (x + y)/2
-                self.entropy(threshold, column)
+                #self.entropy(threshold, column)
 
 class Tree():
     def __init__(self, node):
@@ -101,7 +105,7 @@ def main():
     Xtest, Ytest = GetNormalData(train)
 
     root = Node(Xtrain, Ytrain, 1)
-
+    print(root.GetInfoGain(.7,2))
 main()
 
 
