@@ -5,6 +5,8 @@ from statistics import mode
 from itertools import compress
 
 class Node():
+    # It would have made a dreadfully ugly child;
+    # but it makes a rather handsome pig.
     def __init__(self, Xtrain, Ytrain, depth=1, parent=None):
         self.Xtrain = Xtrain
         self.Ytrain = Ytrain
@@ -16,33 +18,54 @@ class Node():
         self.children = []
         self.determineFeature()
 
-    def entropy(self):
-        count = [0,0] # index 0 is number of 1 and index 2 is number of  -1
-        for y_i in range(len(self.Ytrain)):
-            if self.Ytrain[y_i][0] == -1:
-                count[0] += 1 # count[0] = negative examples
-            count[1] += 1 # count[1] = positive examples
+    # Given a split value between 0 and 1 and an columnIndex
+    def GetInfoGain(self, split, columnIndex):
+        coloumn = self.Xtrain[:, columnIndex] # Get Column index
+        leftSplit = [] # Hold data needed for left split. Holds (idex, value)
+        rightSplit = [] # Hold data for right split. Holds (index, value)
 
-        totalData = sum(count)
+        # Enumerate through the column we keep track of what index the
+        # element less than the split was located at.
+        for i, elem in enumerate(column):
+            if elem < split:
+                leftSplit.append(i)
+            else:
+                rightSplit.append(i)
 
-        H = 0
-        if not self.Children:
-            for c in count:
-                purity = c / totalData
-                H -= purity * math.log2(purity)
-            return H
-        else:
-            return  RemainingEntropyOfChildren(self.Ytrain, totalData)
+        # Purity based off the splits splits
+        col_size = len(column)
+        left_p = len(leftSplit) / col_size
+        right_p = len(rightSplit) / col_size
 
-    def RemaningEntropyofChildren(self, Ytrain, totalData):
-        H = 0
-        for node in self.children:
-            H += self.len(node)/ (totalData * child.entropy(Ytrain))
-        return H
-    
+        # Need to have the current entropy of the
+        # node to show the info gained from the split.
+        # combining them so current is a list of key values for the class.
+        current_entropy = entropy(leftSplit + rightSplit)
+
+        # Return info gained by the given split value.
+        return (current_entropy - left_p * entropy(leftSplit) -
+                right_p * entropy(rightSplit))
+
+    def entroypy(self, data):
+        classe_count = [0, 0]
+        for v_i in data:
+            if self.Ytrain[v_i] == -1:
+                class_count[0] += 1
+            else:
+                class_count[1] += 1
+
+        # Zero case, this might be possible.
+        if class_count[0] and class_count[1] == 0:
+            return 0
+        # We're all made here.
+        neg_v = - class_count[0] * math.log2(class_count[0])
+        pos_v = - class_count[1] * math.log2(class_count[1])
+        return pos_v + neg_v
+
         # sort dataIndices according to value of feature
         # outer loop: iterate through all features in remaining feature list
-        # inner loop: iterate through possible split values to find the one that minimizes entropy for that feature
+        # inner loop: iterate through possible split values to find the one
+        # that minimizes entropy for that feature
     def determineFeature(self):
         print("fuck python indentation")
         minFeatureEntropy = 1
@@ -59,9 +82,9 @@ class Tree():
         self.root = node
 
 def Normalize(X):
-    return (X-X.min(0)) / X.ptp(0); # X.min retrieves the smallest value in the whole array. 
-                                    # X - X.min(0) shifts all the values in X so that the smallest value is now 0. 
-                                    # X.ptp(0) is X.max - X.min, 
+    return (X-X.min(0)) / X.ptp(0); # X.min retrieves the smallest value in the whole array.
+                                    # X - X.min(0) shifts all the values in X so that the smallest value is now 0.
+                                    # X.ptp(0) is X.max - X.min,
                                     # so dividing by that value scales all values in X to between 0 and 1.
 
 def GetNormalData(data):
@@ -78,7 +101,7 @@ def main():
     Xtest, Ytest = GetNormalData(train)
 
     root = Node(Xtrain, Ytrain, 1)
-    
+
 main()
 
 
