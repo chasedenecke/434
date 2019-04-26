@@ -8,17 +8,17 @@ class Node():
     # It would have made a dreadfully ugly child;
     # but it makes a rather handsome pig.
     def __init__(self, Xtrain, Ytrain, depth=1, parent=None):
-        print("start of new node")
         self.Xtrain = Xtrain
         self.Ytrain = Ytrain
         self.depth = depth
         self.splitValue = None
         self.parent = parent
-        self.children = []
-        self.featureIndex = -1
-        self.infoGain = -1
+        self.leftChild = None
+        self.rightChild = None
+        self.featureIndex = None
+        self.infoGain = 0
         self.col_size = -1
-        self.determineFeature()
+        self.label = 0
     # Given a split value between 0 and 1 and an columnIndex
     # returns the information gain based off the split.
     def GetInfoGain(self, split, columnIndex):
@@ -48,6 +48,9 @@ class Node():
         return (current_entropy - left_p * self.entropy(leftSplit) -
                 right_p * self.entropy(rightSplit))
 
+    # At a high level, this function basically returns a value that gets closer and closer
+    # to zero when the purity of the data approaches 100%. The function it evaluates
+    # is the sum 
     def entropy(self, data):
         class_count = [0, 0]
         for v_i in data:
@@ -71,10 +74,10 @@ class Node():
         # inner loop: iterate through possible split values to find the one
         # that minimizes entropy for that feature
     def determineFeature(self):
-        for column, feature in enumerate(np.transpose(self.Xtrain)): # Iterate through columns of data by first transposing data matrix
+        for column, feature in enumerate(self.Xtrain.T): # Iterate through columns of data by first transposing data matrix
             sortedFeature = np.unique(feature)
             sortedFeature.sort()
-            for x in sortedFeature[:-2]: # This should technically stop 1 spot before the last element of the array but I am lazy
+            for x in sortedFeature[:-1]: 
                 # print("column before if = ", column)
                 infoGain = self.GetInfoGain(x, column)
                 if infoGain > self.infoGain:
@@ -86,11 +89,20 @@ class Node():
     # returns list of all leaf-level descendant's information gain and the number of data points in those leaf nodes
     def reproduce(self):
         self.determineFeature()
-        print("depth = ", self.depth)
-        print("featureIndex = ", self.featureIndex)
         # Base case. If the data is purely one category or the other return.
         # Also return if the depth counter we set at the root node has reached zero.
         if self.infoGain == 0 or self.depth == 0:
+            self.infoGain = 0
+            self.featureIndex = None
+
+            counts = [0,0]
+            for i in self.Ytrain:
+                if i == -1:
+                    counts[0] += 1
+                else:
+                    counts[1] += 1
+                self.label = -1 if counts[0] > counts[1] else 1
+
             return [(self.infoGain, self.col_size)]
         else:
             leftSplitX = np.empty([0, self.Xtrain.shape[1]]) # Hold data needed for left split. Holds Y keys for left split.
@@ -112,16 +124,47 @@ class Node():
             # yRight = [y for y in self.Ytrain[self.featureIndex+1:]]
 
             # Create child nodes and encourage them to give you grandkids
-            leftChild = Node(leftSplitX, leftSplitY, self.depth - 1, None)
-            rightChild = Node(rightSplitX, rightSplitY, self.depth - 1, None)
-            leftList = leftChild.reproduce()
-            rightList = rightChild.reproduce()
+            self.leftChild = Node(leftSplitX, leftSplitY, self.depth - 1, None)
+            self.rightChild = Node(rightSplitX, rightSplitY, self.depth - 1, None)
+            leftList = self.leftChild.reproduce()
+            rightList = self.rightChild.reproduce()
             return leftList + rightList
-        
+    
+    # Pass data values and labels to this function
+    # Figure out which data values go to each child based on the split value and featureIndex
+    # Call child's test function with those data values if child != None
+    # Base case: if both children are None, return # of errors
+    def test(self, Xtest, Ytest):
+        if self.leftChild == None and self.rightChild == None:
+            negatives = 0
+            positives = 0
+            for i in Ytest:
+                if i == -1:
+                    negatives += 1
+                if i == 1:
+                    positives += 1
+            if self.label == -1:
+                return positives
+            else:
+                return negatives
 
-class Tree():
-    def __init__(self, node):
-        self.root = node
+        leftSplitX = np.empty([0, Xtest.shape[1]]) # Hold data needed for left split. Holds Y keys for left split.
+        rightSplitX = np.empty([0, Xtest.shape[1]]) # Hold data for right split. Holds Y keys for right split.
+        leftSplitY = np.empty([0])
+        rightSplitY = np.empty([0])
+        error = 0
+
+        # Enumerate through the column we keep track of what index the
+        # element less than the split was located at.
+        for i, elem in enumerate(Xtest.T[self.featureIndex]):
+            if elem <= self.splitValue:
+                leftSplitX = np.append(leftSplitX, Xtest[i:i+1], axis=0)
+                leftSplitY = np.append(leftSplitY, Ytest[i:i+1], axis=0)
+            else:
+                rightSplitX = np.append(rightSplitX, Xtest[i:i+1], axis=0)
+                rightSplitY = np.append(rightSplitY, Ytest[i:i+1], axis=0)
+        
+        return self.leftChild.test(leftSplitX, leftSplitY) +self.rightChild.test(rightSplitX, rightSplitY)
 
 def Normalize(X):
     return (X-X.min(0)) / X.ptp(0); # X.min retrieves the smallest value in the whole array.
@@ -140,11 +183,17 @@ def main():
     test = np.genfromtxt(sys.argv[2], delimiter=',')
 
     Xtrain, Ytrain = GetNormalData(train)
-    Xtest, Ytest = GetNormalData(train)
+    Xtest, Ytest = GetNormalData(test)
 
     root = Node(Xtrain, Ytrain, 1)
-    print(root.reproduce())
-    print(root.featureIndex)
+    root.reproduce()
+    print("stump feature:", root.featureIndex)
+    print("left branch:", root.leftChild.label)
+    print("right branch:", root.rightChild.label)
+    print("Test Boundry:", root.splitValue)
+    print("information gain:", root.infoGain)
+    print("training error: ", root.test(Xtrain, Ytrain)/len(Ytrain))
+    print("testing error: ", root.test(Xtest, Ytest)/ len(Ytest))
 main()
 
 
