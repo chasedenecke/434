@@ -19,6 +19,7 @@ class Node():
         self.infoGain = 0
         self.col_size = -1
         self.determineFeature()
+        self.label = 0
     # Given a split value between 0 and 1 and an columnIndex
     # returns the information gain based off the split.
     def GetInfoGain(self, split, columnIndex):
@@ -91,10 +92,14 @@ class Node():
         if self.infoGain == 0 or self.depth == 0:
             self.infoGain = 0
             self.featureIndex = None
-            print("BASE CASE")
-            print("self.featureIndex = ", self.featureIndex)
-            print("self.infoGain = ", self.infoGain)
-            print("self.depth = ", self.depth)
+
+            counts = [0,0]
+            for i in self.Ytrain:
+                if i == -1:
+                    counts[0] += 1
+                else:
+                    counts[1] += 1
+                self.label = -1 if counts[0] > counts[1] else 1
             return [(self.infoGain, self.col_size)]
         else:
             leftSplitX = np.empty([0, self.Xtrain.shape[1]]) # Hold data needed for left split. Holds Y keys for left split.
@@ -135,7 +140,10 @@ class Node():
                     negatives += 1
                 if i == 1:
                     positives += 1
-            return min(negatives, positives)
+            if self.label == -1:
+                return positives
+            else:
+                return negatives
 
         leftSplitX = np.empty([0, self.Xtrain.shape[1]]) # Hold data needed for left split. Holds Y keys for left split.
         rightSplitX = np.empty([0, self.Xtrain.shape[1]]) # Hold data for right split. Holds Y keys for right split.
@@ -153,11 +161,7 @@ class Node():
                 rightSplitX = np.append(rightSplitX, self.Xtrain[i:i+1], axis=0)
                 rightSplitY = np.append(rightSplitY, self.Ytrain[i:i+1], axis=0)
         
-        if self.leftChild != None:
-            error += self.leftChild.test(leftSplitX, leftSplitY)
-        if self.rightChild != None:
-            error += self.rightChild.test(rightSplitX, rightSplitY)
-        return error
+        return self.leftChild.test(leftSplitX, leftSplitY) +self.rightChild.test(rightSplitX, rightSplitY)
 
 
 class Tree():
@@ -183,11 +187,11 @@ def main():
     Xtrain, Ytrain = GetNormalData(train)
     Xtest, Ytest = GetNormalData(train)
 
-    root = Node(Xtrain, Ytrain, 1)
-    print(root.reproduce())
+    root = Node(Xtrain, Ytrain, 4)
+    root.reproduce()
     print(root.featureIndex)
-    print(root.test(Xtrain, Ytrain))
-    print(root.test(Xtest, Ytest))
+    print("training error: ", root.test(Xtrain, Ytrain)/len(Ytrain))
+    print("testing error: ", root.test(Xtest, Ytest)/ len(Ytest))
 main()
 
 
