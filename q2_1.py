@@ -18,7 +18,6 @@ class Node():
         self.featureIndex = None
         self.infoGain = 0
         self.col_size = -1
-        self.determineFeature()
         self.label = 0
     # Given a split value between 0 and 1 and an columnIndex
     # returns the information gain based off the split.
@@ -49,6 +48,9 @@ class Node():
         return (current_entropy - left_p * self.entropy(leftSplit) -
                 right_p * self.entropy(rightSplit))
 
+    # At a high level, this function basically returns a value that gets closer and closer
+    # to zero when the purity of the data approaches 100%. The function it evaluates
+    # is the sum 
     def entropy(self, data):
         class_count = [0, 0]
         for v_i in data:
@@ -100,6 +102,7 @@ class Node():
                 else:
                     counts[1] += 1
                 self.label = -1 if counts[0] > counts[1] else 1
+
             return [(self.infoGain, self.col_size)]
         else:
             leftSplitX = np.empty([0, self.Xtrain.shape[1]]) # Hold data needed for left split. Holds Y keys for left split.
@@ -145,28 +148,23 @@ class Node():
             else:
                 return negatives
 
-        leftSplitX = np.empty([0, self.Xtrain.shape[1]]) # Hold data needed for left split. Holds Y keys for left split.
-        rightSplitX = np.empty([0, self.Xtrain.shape[1]]) # Hold data for right split. Holds Y keys for right split.
+        leftSplitX = np.empty([0, Xtest.shape[1]]) # Hold data needed for left split. Holds Y keys for left split.
+        rightSplitX = np.empty([0, Xtest.shape[1]]) # Hold data for right split. Holds Y keys for right split.
         leftSplitY = np.empty([0])
         rightSplitY = np.empty([0])
         error = 0
 
         # Enumerate through the column we keep track of what index the
         # element less than the split was located at.
-        for i, elem in enumerate(self.Xtrain.T[self.featureIndex]):
+        for i, elem in enumerate(Xtest.T[self.featureIndex]):
             if elem <= self.splitValue:
-                leftSplitX = np.append(leftSplitX, self.Xtrain[i:i+1], axis=0)
-                leftSplitY = np.append(leftSplitY, self.Ytrain[i:i+1], axis=0)
+                leftSplitX = np.append(leftSplitX, Xtest[i:i+1], axis=0)
+                leftSplitY = np.append(leftSplitY, Ytest[i:i+1], axis=0)
             else:
-                rightSplitX = np.append(rightSplitX, self.Xtrain[i:i+1], axis=0)
-                rightSplitY = np.append(rightSplitY, self.Ytrain[i:i+1], axis=0)
+                rightSplitX = np.append(rightSplitX, Xtest[i:i+1], axis=0)
+                rightSplitY = np.append(rightSplitY, Ytest[i:i+1], axis=0)
         
         return self.leftChild.test(leftSplitX, leftSplitY) +self.rightChild.test(rightSplitX, rightSplitY)
-
-
-class Tree():
-    def __init__(self, node):
-        self.root = node
 
 def Normalize(X):
     return (X-X.min(0)) / X.ptp(0); # X.min retrieves the smallest value in the whole array.
@@ -185,11 +183,15 @@ def main():
     test = np.genfromtxt(sys.argv[2], delimiter=',')
 
     Xtrain, Ytrain = GetNormalData(train)
-    Xtest, Ytest = GetNormalData(train)
+    Xtest, Ytest = GetNormalData(test)
 
-    root = Node(Xtrain, Ytrain, 4)
+    root = Node(Xtrain, Ytrain, 1)
     root.reproduce()
-    print(root.featureIndex)
+    print("stump feature:", root.featureIndex)
+    print("left branch:", root.leftChild.label)
+    print("right branch:", root.rightChild.label)
+    print("Test Boundry:", root.splitValue)
+    print("information gain:", root.infoGain)
     print("training error: ", root.test(Xtrain, Ytrain)/len(Ytrain))
     print("testing error: ", root.test(Xtest, Ytest)/ len(Ytest))
 main()
