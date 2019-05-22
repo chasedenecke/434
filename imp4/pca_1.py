@@ -46,12 +46,19 @@ class PCA:
 
     return eigVal, eigVec
 
+  def getTopEiganValues(self, eigVal, eigVec, n=10):
+      eigMap = [np.abs(eigVal[i], eigVec[:,i]) for i in range(len(eigVal))]
+      eigMap.sort(key=lambda x: x[0], reverse=True)
+      return [eigMap[i][0] for i in range(n)]
+
 if __name__ == "__main__":
-  FILE = LoadData("debug-data.txt")
-  #FILE = LoadData("p4-data.txt")
+  #FILE = LoadData("debug2-data.txt")
+  FILE = LoadData("p4-data.txt")
 
   pca = PCA(FILE)
   #pca.setFeatureMean()
   pca.getCovMat()
   eigVal, eigVec  = pca.getEiganValues()
+  topTen = pca.getTopEiganValues(eigVal, eigVec)
+  print(topTen)
 
