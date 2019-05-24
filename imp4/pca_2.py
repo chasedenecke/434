@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import code
+import sys
 
 class LoadData:
   def __init__(self, FILE):
@@ -32,7 +33,7 @@ class PCA:
     return self.featureMean
 
   def getCovMat(self):
-    self.cov = np.corrcoef(self.data)
+    self.cov = np.cov(self.data.T)
     return self.cov
 
   def getEiganValues(self, p=False):
@@ -48,7 +49,7 @@ class PCA:
 
     return eigVal, eigVec
 
-  def getTopEiganValues(self, eigVal, eigVec, n=10):
+  def getTopEigenValues(self, eigVal, eigVec, n=10):
       eigMap = [(eigVal[i], eigVec[i]) for i in range(len(eigVal))]
       eigMap.sort(key=lambda x: x[0], reverse=True)
       return [eigMap[i][0] for i in range(n)], [eigMap[i][1] for i in range(n)]
@@ -56,15 +57,19 @@ class PCA:
 if __name__ == "__main__":
   FILE = LoadData("debug-data.txt")
   #FILE = LoadData("p4-data.txt")
-
+  np.set_printoptions(threshold=sys.maxsize)
   pca = PCA(FILE)
   pca.setFeatureMean()
   plt.imshow(np.reshape(pca.featureMean,(28,28)))
   plt.show()
   pca.getCovMat()
   eigVal, eigVec  = pca.getEiganValues()
-  topTenVal, topTenVec = pca.getTopEiganValues(eigVal, eigVec)
-fig, ax = plt.subplots(nrows=3, ncols=4)
+  topTenVal, topTenVec = pca.getTopEigenValues(eigVal, eigVec)
+  # print("topTenVec = ", topTenVec)
+  newRep = np.matmul(topTenVec, pca.data.T).T
+  print(newRep)
+  '''
+  fig, ax = plt.subplots(nrows=3, ncols=4)
   for i, row in enumerate(ax):
     for j, col in enumerate(row):
       if i == 0 and j == 0:
@@ -74,3 +79,4 @@ fig, ax = plt.subplots(nrows=3, ncols=4)
   plt.show()
   print(topTenVal)
   code.interact(local=locals()) # Start interpreter for debugging
+  '''
