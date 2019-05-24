@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import code
 
 class LoadData:
   def __init__(self, FILE):
@@ -49,16 +51,30 @@ class PCA:
   def getTopEiganValues(self, eigVal, eigVec, n=10):
       eigMap = [np.abs(eigVal[i], eigVec[:,i]) for i in range(len(eigVal))]
       eigMap.sort(key=lambda x: x[0], reverse=True)
-      return [eigMap[i][0] for i in range(n)]
+      print(eigMap[0])
+      return [eigMap[i][0] for i in range(n)], [eigMap[i][1] for i in range(n)]
 
 if __name__ == "__main__":
-  #FILE = LoadData("debug2-data.txt")
-  FILE = LoadData("p4-data.txt")
+  FILE = LoadData("debug2-data.txt")
+  #FILE = LoadData("p4-data.txt")
 
   pca = PCA(FILE)
-  #pca.setFeatureMean()
+  pca.setFeatureMean()
+  plt.imshow(np.reshape(pca.featureMean,(28,28)))
+  plt.show()
   pca.getCovMat()
   eigVal, eigVec  = pca.getEiganValues()
-  topTen = pca.getTopEiganValues(eigVal, eigVec)
-  print(topTen)
+  topTenVal, topTenVec = pca.getTopEiganValues(eigVal, eigVec)
+  print("TopTenVec: ",topTenVec)
+  print("TopTenVal: ",topTenVal)
+  fig, ax = plt.subplots(nrows=3, ncols=4)
+  for i, row in enumerate(ax):
+    for j, col in enumerate(row):
+      if i == 0 and j == 0:
+        plt.imshow(np.reshape(pca.featureMean,(28,28)))
+      else:
+        plt.imshow(np.reshape(topTenVec[i*4 + j - 1], (28,28)))
+  plt.show()
+  print(topTenVal)
+  code.interact(local=locals()) # Start interpreter for debugging
 
