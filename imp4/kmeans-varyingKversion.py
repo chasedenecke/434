@@ -97,7 +97,7 @@ class KMeans:
                 sse += np.linalg.norm(y - x.center)**2
         self.SSErrors.append(sse)
         if len(self.SSErrors) != 1:
-            print("SSE after ", len(self.SSErrors), " iterations: ", self.SSErrors[-1])
+            print(self.SSErrors[-1])
 
     def optimizeClusters(self):
         self.initializeClusters()
@@ -129,10 +129,26 @@ class Cluster:
 
 if __name__ == "__main__":
     
-    cloud = KMeans(int(sys.argv[1]))
-    cloud.optimizeClusters()
-    # cloud.reassignRandomSeeds()
-    cloud.optimizeClusters()
-    currentSSE = cloud.getFinalSSE()
-    cloud.reassignRandomSeeds()
-    print("Final SSE: ", cloud.SSErrors[-1])
+    smallestSSE = []
+    for x in range(2, 11):
+        cloud = KMeans(x)
+        tempSmallest = sys.maxsize
+        print("k value: ", x)
+        for y in range(0, 10):   
+            print("run ", y)
+            cloud.optimizeClusters()
+            # cloud.reassignRandomSeeds()
+            cloud.optimizeClusters()
+            currentSSE = cloud.getFinalSSE()
+            if currentSSE < tempSmallest:
+                tempSmallest = currentSSE
+            cloud.reassignRandomSeeds()
+        smallestSSE.append(tempSmallest)
+        print("smallestSSE = ", smallestSSE)
+
+    plt.plot([i for i in range(2, len(smallestSSE)+2)], smallestSSE)
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Converged Sum Squared Error')
+    plt.title('Sum Squared Error')
+    plt.show()
+    code.interact(local=locals()) # Start interpreter for debugging
