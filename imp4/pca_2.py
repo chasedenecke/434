@@ -49,13 +49,12 @@ class PCA:
     return eigVal, eigVec
 
   def getTopEiganValues(self, eigVal, eigVec, n=10):
-      eigMap = [np.abs(eigVal[i], eigVec[:,i]) for i in range(len(eigVal))]
+      eigMap = [(eigVal[i], eigVec[i]) for i in range(len(eigVal))]
       eigMap.sort(key=lambda x: x[0], reverse=True)
-      print(eigMap[0])
       return [eigMap[i][0] for i in range(n)], [eigMap[i][1] for i in range(n)]
 
 if __name__ == "__main__":
-  FILE = LoadData("debug2-data.txt")
+  FILE = LoadData("debug-data.txt")
   #FILE = LoadData("p4-data.txt")
 
   pca = PCA(FILE)
@@ -65,9 +64,7 @@ if __name__ == "__main__":
   pca.getCovMat()
   eigVal, eigVec  = pca.getEiganValues()
   topTenVal, topTenVec = pca.getTopEiganValues(eigVal, eigVec)
-  print("TopTenVec: ",topTenVec)
-  print("TopTenVal: ",topTenVal)
-  fig, ax = plt.subplots(nrows=3, ncols=4)
+fig, ax = plt.subplots(nrows=3, ncols=4)
   for i, row in enumerate(ax):
     for j, col in enumerate(row):
       if i == 0 and j == 0:
@@ -77,4 +74,3 @@ if __name__ == "__main__":
   plt.show()
   print(topTenVal)
   code.interact(local=locals()) # Start interpreter for debugging
-
