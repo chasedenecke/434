@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
- 
-np.set_printoptions(threshold=sys.maxsize)
+
 
 class LoadData:
   def __init__(self, FILE):
@@ -13,7 +11,7 @@ class LoadData:
     return np.size(self.data, 1)
 
   def getData(self):
-      return self.data
+    return self.data
 
 class PCA:
   def __init__(self, FILE):
@@ -51,29 +49,37 @@ class PCA:
     return eigVal, eigVec
 
   def getTopEigenValues(self, eigVal, eigVec, n=10):
-      eigMap = [(np.abs(eigVal[i]), eigVec[i]) for i in range(len(eigVal))]
-      eigMap.sort(key=lambda x: x[0], reverse=True)
-      return np.asarray([eigMap[i][0] for i in range(n)]), np.asarray([eigMap[i][1] for i in range(n)])
+    eigMap = [(np.abs(eigVal[i]), eigVec[:, i]) for i in range(len(eigVal))]
+    eigMap.sort(key=lambda x: x[0], reverse=True)
+    return np.asarray([eigMap[i][0] for i in range(n)]), np.asarray([eigMap[i][1] for i in range(n)])
+
+def makeGraphs(featureMean, eigVec, rep):
+  fig = plt.figure()
+  fig.subplots_adjust(hspace=0.6, wspace=0.6)
+  ax = fig.add_subplot(3, 4, 1)
+  ax.set_title('Mean image')
+  ax.imshow(featureMean.reshape((28, 28)))
+
+  for i, v in enumerate(eigVec):
+    ax = fig.add_subplot(3, 4, i + 2)
+    name = "eigen-vec " + str(i + 1)
+    ax.set_title(name)
+    ax.imshow(v.reshape((28, 28)))
+  
+  plt.show()
+  
 
 if __name__ == "__main__":
   FILE = LoadData("p4-data.txt")
 
   pca = PCA(FILE)
   pca.setFeatureMean()
-  plt.imshow(np.reshape(pca.featureMean,(28,28)))
-  plt.show()
 
   pca.getCovMat()
   eigVal, eigVec  = pca.getEiganValues()
   topTenVal, topTenVec = pca.getTopEigenValues(eigVal, eigVec)
-  print(topTenVec.T.shape)
-  print(pca.data.shape)
-  newRep = np.matmul(topTenVec, pca.data.T).T
-  print(newRep.shape)
 
-  plt.imshow(topTenVec[0].reshape((28, 28)))
-  plt.show()
+  newRep = np.matmul(topTenVec, pca.data.T).T
   
-  plt.imshow(newRep[0].reshape((2, 5)))
-  plt.show()
+  makeGraphs(pca.featureMean, topTenVec, newRep)
 
