@@ -30,11 +30,11 @@ class PCA:
     return self.featureMean
 
   def getCovMat(self):
-    self.cov = np.corrcoef(self.data)
+    self.cov = np.cov(self.data.T)
     return self.cov
 
   def getEiganValues(self, p=False):
-    eigVal, eigVec = np.linalg.eig(self.cov)
+    eigVal, eigVec = np.linalg.eigh(self.cov)
 
     if p == True:
       for i in range(len(eigVal)):
@@ -47,9 +47,9 @@ class PCA:
     return eigVal, eigVec
 
   def getTopEiganValues(self, eigVal, eigVec, n=10):
-      eigMap = [np.abs(eigVal[i], eigVec[:,i]) for i in range(len(eigVal))]
+      eigMap = [np.abs(eigVal[i], eigVec[:, i]) for i in range(len(eigVal))]
       eigMap.sort(key=lambda x: x[0], reverse=True)
-      return [eigMap[i][0] for i in range(n)]
+      return np.asarray([eigMap[i][0] for i in range(n)])
 
 if __name__ == "__main__":
   #FILE = LoadData("debug2-data.txt")
