@@ -137,8 +137,6 @@ if __name__ == "__main__":
         for y in range(0, 10):   
             print("run ", y)
             cloud.optimizeClusters()
-            # cloud.reassignRandomSeeds()
-            cloud.optimizeClusters()
             currentSSE = cloud.getFinalSSE()
             if currentSSE < tempSmallest:
                 tempSmallest = currentSSE
@@ -146,6 +144,7 @@ if __name__ == "__main__":
         smallestSSE.append(tempSmallest)
         print("smallestSSE = ", smallestSSE)
 
+    print(smallestSSE)
     plt.plot([i for i in range(2, len(smallestSSE)+2)], smallestSSE)
     plt.xlabel('Number of Clusters')
     plt.ylabel('Converged Sum Squared Error')

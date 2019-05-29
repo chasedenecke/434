@@ -22,17 +22,23 @@ class KMeans:
         # The center of each cluster and the list of points in the cluster are initialized to
         # the value of the random seed point chosen by selectRandomSeeds()
 
+    # Pick K random points to serve as the first point in each of the K clusters
     def selectRandomSeeds(self):
         self.randomSeeds = random.sample(range(0, self.digits.shape[0]), self.k)
 
+    # Used when running the program with multiple random initializations.
     def reassignRandomSeeds(self):
         self.randomSeeds = random.sample(range(0, self.digits.shape[0]), self.k)
         for i, x in enumerate(self.clusters):
             x.center = self.digits[self.randomSeeds[i]]
             x.points = [self.digits[self.randomSeeds[i]]]
 
+    # Assign every point to a cluster. This function shares a large amount of 
+    # code with update clusters, but is broken off into a separate function due to the
+    # differing treatment of the random seeds.
     def initializeClusters(self):
-        # Assign every point to a cluster
+        
+        # This loop goes through the entire list of data points and assigns them to a cluster
         for i, x in enumerate(self.digits):
             xIsSeed = False
 
@@ -40,6 +46,8 @@ class KMeans:
             for y in self.randomSeeds:
                 if i == y:
                     xIsSeed = True
+
+            # If the point in question is not one of the random seeds
             if xIsSeed == False:
                 closestClusterIndex = None
                 smallestDistance = sys.maxsize
@@ -54,12 +62,13 @@ class KMeans:
                         smallestDistance = np.linalg.norm(y.center - x)
                 
                 # Append the point to the cluster whose center is closest to it
-                self.clusters[closestClusterIndex].points.append(x)    
+                self.clusters[closestClusterIndex].points.append(x)
+        
     # Checks all points to see if the cluster they belong to needs to be switched.
     # Does so by asprint(type(x[0]))print(type(x[0]))signing all points to the cluster whose center is closest using euclidean distance.
     def updateClusters(self):
 
-        
+        # Loop through all points
         for i, x in enumerate(self.clusters):
             tempList = []
 
@@ -86,10 +95,13 @@ class KMeans:
                     tempList.append(x.points[j])
             x.points = tempList
     
+    # Calculate the center (mean) of each cluster of points now that the some points may have changed
     def updateCenters(self):
         for x in self.clusters:
             x.center = np.mean(x.points, axis=0)
     
+    # Calculate the sum squared error. The error in question is the distance
+    # between a point in a cluster and the center of the cluster.
     def sse(self):
         sse = 0
         for x in self.clusters:
@@ -97,8 +109,11 @@ class KMeans:
                 sse += np.linalg.norm(y - x.center)**2
         self.SSErrors.append(sse)
         if len(self.SSErrors) != 1:
-            print("SSE after ", len(self.SSErrors), " iterations: ", self.SSErrors[-1])
+            print("SSE after ", len(self.SSErrors) - 1, " iterations: ", self.SSErrors[-1])
 
+    # The workhorse of this program. This does the random initialization of the cluster center points,
+    # then updates the clusters again and again until no points switch clusters.
+    # It also keeps track of the sum squared error (SSE) after each iteration.
     def optimizeClusters(self):
         self.initializeClusters()
         self.updateCenters()
@@ -113,9 +128,16 @@ class KMeans:
             if self.SSErrors[-1] == self.SSErrors[-2]:
                 break
     
+    # Graph the SSE as a function of number of iterations
     def displayResults(self):
+
+        # Since the first member of the sserrors list is sys.maxsize and the last is a
+        # duplicate of the second to last, we leave both the first and the last element 
+        # off when graphing.
         plt.plot(range(len(self.SSErrors) - 2), self.SSErrors[1:-1])
-        # plt.ylim(10000000000, 20000000000)
+        plt.xlabel('Iteration')
+        plt.ylabel('Sum Squared Erro')
+        plt.title('Convergence of Kmeans Algorithm')
         plt.show()
     
     def getFinalSSE(self):
@@ -132,7 +154,7 @@ if __name__ == "__main__":
     cloud = KMeans(int(sys.argv[1]))
     cloud.optimizeClusters()
     # cloud.reassignRandomSeeds()
-    cloud.optimizeClusters()
     currentSSE = cloud.getFinalSSE()
     cloud.reassignRandomSeeds()
     print("Final SSE: ", cloud.SSErrors[-1])
+    cloud.displayResults()
