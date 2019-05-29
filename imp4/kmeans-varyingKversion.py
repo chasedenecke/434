@@ -114,7 +114,7 @@ class KMeans:
                 break
     
     def displayResults(self):
-        plt.plot(range(len(self.SSErrors) - 2), self.SSErrors[1:-1])
+        plt.plot(range(len(self.SSErrors)), self.SSErrors)
         # plt.ylim(10000000000, 20000000000)
         plt.show()
     
@@ -130,7 +130,7 @@ class Cluster:
 if __name__ == "__main__":
     
     smallestSSE = []
-    for x in range(2, 11):
+    for x in range(2, 12):
         cloud = KMeans(x)
         tempSmallest = sys.maxsize
         print("k value: ", x)
